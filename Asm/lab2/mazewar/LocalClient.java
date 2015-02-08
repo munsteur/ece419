@@ -53,36 +53,28 @@ public abstract class LocalClient extends Client {
          * Fill in here??
          * @return 
          */
-        public boolean forward() {
+        public void reportForward() {
         	MazewarPacket packet = new MazewarPacket(MazewarPacketType.GO_FORWARD, -1, -1, "");
         	mazewarClient.senderQueue.add(packet);
-        	return true;
-        	//return super.forward();
         }
         
-        public boolean backup() {
+        public void reportBackup() {
         	MazewarPacket packet = new MazewarPacket(MazewarPacketType.GO_BACKWARD, -1, -1, "");
         	mazewarClient.senderQueue.add(packet);
-        	return true;
-        	//return super.forward();
         }
         
-        public void turnLeft() {
+        public void reportTurnLeft() {
         	MazewarPacket packet = new MazewarPacket(MazewarPacketType.TURN_LEFT, -1, -1, "");
         	mazewarClient.senderQueue.add(packet);
-        	//super.turnLeft();
         }
         
-        public void turnRight() {
+        public void reportTurnRight() {
         	MazewarPacket packet = new MazewarPacket(MazewarPacketType.TURN_RIGHT, -1, -1, "");
         	mazewarClient.senderQueue.add(packet);
-        	//super.turnRight();
         }
         
-        public boolean fire() {
+        public void reportFire() {
         	MazewarPacket packet = new MazewarPacket(MazewarPacketType.FIRE, -1, -1, "");
         	mazewarClient.senderQueue.add(packet);
-        	return true;
-        	//return super.fire();
         }
 }

@@ -95,14 +95,14 @@ public class MazewarServer {
 			MazewarPacket packet = packetQueue.poll();
 			playerNames[packet.playerID] = packet.msg;
 		}
-		sequenceNumber.set(0); // reset sequence number in listener thread
+		sequenceNumber.set(0); // reset sequence number
 		
 		new Thread(new MazewarServerEventBroadcastThread(this)).start();
 //		try {
-//			Thread.sleep(1000);
+//			Thread.sleep(2000);
 //		}
 //		catch (InterruptedException e) {}
-//		new Thread(new MazewarServerMissileTickerThread(this)).start();
+		new Thread(new MazewarServerMissileTickerThread(this)).start();
 
 		validInput = false;
 		while (!validInput) {
@@ -111,6 +111,7 @@ public class MazewarServer {
 			s = s.trim();
 			if (s.equalsIgnoreCase("quit")) {
 				validInput = true;
+				packetQueue.add(new MazewarPacket(MazewarPacketType.QUIT, -1, sequenceNumber.getAndIncrement(), ""));
 				shutDown();
 			}
 		}

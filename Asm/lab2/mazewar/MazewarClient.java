@@ -45,18 +45,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MazewarClient extends JFrame {
 
+	private static final int QUEUE_SIZE = 1000;
+	
 	private String host;
 	private int port; 
 	private boolean isShutDown;
 	private int playerID;
 	private int numPlayers;
 	private Client[] clients;
-	
+
+
 	public Socket socket;
 	public PriorityBlockingQueue<MazewarPacket> listenerQueue;
 	public PriorityBlockingQueue<MazewarPacket> senderQueue;
 	private AtomicInteger sequenceNumber;
-	
+	public String[] playerNames;
+
 	/**
 	 * The default width of the {@link Maze}.
 	 */
@@ -77,7 +81,7 @@ public class MazewarClient extends JFrame {
 	/**
 	 * The {@link Maze} that the game uses.
 	 */
-	private Maze maze = null;
+	private MazeImpl maze = null;
 
 	/**
 	 * The {@link GUIClient} for the game.
@@ -130,7 +134,7 @@ public class MazewarClient extends JFrame {
 	public void shutDown() {
 		isShutDown = true;
 	}
-	
+
 	public boolean isShutDown() {
 		return isShutDown;
 	}
@@ -161,10 +165,10 @@ public class MazewarClient extends JFrame {
 
 		// You may want to put your network initialization code somewhere in
 		// here.
-		listenerQueue = new PriorityBlockingQueue<MazewarPacket>();
-		senderQueue = new PriorityBlockingQueue<MazewarPacket>();
+		listenerQueue = new PriorityBlockingQueue<MazewarPacket>(QUEUE_SIZE);
+		senderQueue = new PriorityBlockingQueue<MazewarPacket>(QUEUE_SIZE);
 		isShutDown = false;
-		
+
 		this.host = host;
 		this.port = port;
 		try {
@@ -175,11 +179,11 @@ public class MazewarClient extends JFrame {
 			System.err.println("ERROR: Could not connect to the server");
 			System.exit(1);
 		}
-		
-		
+
+
 		new MazewarClientEventListenerThread(this).start();
 		new MazewarClientEventSenderThread(this).start();
-		
+
 		// send player name
 		MazewarPacket firstClientPacket = new MazewarPacket(
 				MazewarPacketType.PLAYER_NAME, 
@@ -187,40 +191,41 @@ public class MazewarClient extends JFrame {
 				-1,
 				name);
 		senderQueue.add(firstClientPacket);	
-		
+
 		// wait for first packet from server
 		// with all players' information
-		sequenceNumber = new AtomicInteger(1);
+		sequenceNumber = new AtomicInteger(0);
 		MazewarPacket firstServerPacket = null;
 		while (listenerQueue.isEmpty()) {
 			// wait
 		}
 		firstServerPacket = listenerQueue.poll();
-		if (firstServerPacket.packetType != MazewarPacketType.GAME_START || firstServerPacket.sequenceNumber != 1) {
+		if (firstServerPacket.packetType != MazewarPacketType.GAME_START || 
+				firstServerPacket.sequenceNumber != sequenceNumber.getAndIncrement()) {
 			System.err.println("ERROR: Communication error with server");
 			System.exit(1);
 		}
-		
-//		System.out.println(packet.playerID + " " + packet.packetType + " " + packet.msg);
-		
+
+		//		System.out.println(packet.playerID + " " + packet.packetType + " " + packet.msg);
+
 		playerID = firstServerPacket.playerID;
 		// words[0] = numPlayers
 		// words[i, i+1] = player id, player name 
 		String[] words = firstServerPacket.msg.split(" ");
 		numPlayers = Integer.parseInt(words[0]);
 		System.out.println("Player " + playerID + " of " + numPlayers + " players");
-		
-		
-		String[] playerNames = new String[numPlayers];
+
+
+		playerNames = new String[numPlayers];
 		for (int i = 1; i < words.length; i += 2)
 			playerNames[Integer.parseInt(words[i])] = words[i+1];
-//		for (int i = 0; i < playerNames.length; i++)
-//			System.out.println(playerNames[i]);
-		
-		
-		
+		//		for (int i = 0; i < playerNames.length; i++)
+		//			System.out.println(playerNames[i]);
+
+
+
 		clients = new Client[numPlayers];
-		
+
 		for (int i = 0; i < numPlayers; i++) {
 			if (i == playerID) {
 				// Create the GUIClient and connect it to the KeyListener queue
@@ -235,17 +240,17 @@ public class MazewarClient extends JFrame {
 				clients[i] = (Client) remoteClient;
 			}
 		}
-		
-		
-		
+
+
+
 
 		// Use braces to force constructors not to be called at the beginning of the
 		// constructor.
 		{
-//			maze.addClient(new RobotClient("Norby"));
-//			maze.addClient(new RobotClient("Robbie"));
-//			maze.addClient(new RobotClient("Clango"));
-//			maze.addClient(new RobotClient("Marvin"));
+			//			maze.addClient(new RobotClient("Norby"));
+			//			maze.addClient(new RobotClient("Robbie"));
+			//			maze.addClient(new RobotClient("Clango"));
+			//			maze.addClient(new RobotClient("Marvin"));
 		}
 
 
@@ -306,41 +311,49 @@ public class MazewarClient extends JFrame {
 		setVisible(true);
 		overheadPanel.repaint();
 		this.requestFocusInWindow();
-		
-		
-		
-		
+
+
+
+
 		while (!isShutDown) {
 			if (!listenerQueue.isEmpty()) {
-				MazewarPacket packet = listenerQueue.poll();
-				Client player = clients[packet.playerID];
-				switch (packet.packetType) {
-				case FIRE:
-					player.fire();
-					break;
-				case GO_BACKWARD:
-					player.backup();
-					break;
-				case GO_FORWARD:
-					player.forward();
-					break;
-				case TURN_LEFT:
-					player.turnLeft();
-					break;
-				case TURN_RIGHT:
-					player.turnRight();
-					break;
-				case MISSLE_TICK:
-					break;
-				case QUIT:
-					shutDown();
-				default:
-					break;
+				MazewarPacket packet = listenerQueue.peek();
+				if (packet.sequenceNumber == sequenceNumber.get()) {
+					listenerQueue.poll();
+					if (packet.packetType == MazewarPacketType.MISSLE_TICK)
+						new Thread(maze).start();
+					else if (packet.packetType == MazewarPacketType.QUIT)
+						shutDown();
+					else {
+						Client player = clients[packet.playerID];
+						switch (packet.packetType) {
+						case FIRE:
+							player.fire();
+							break;
+						case GO_BACKWARD:
+							player.backup();
+							break;
+						case GO_FORWARD:
+							player.forward();
+							break;
+						case TURN_LEFT:
+							player.turnLeft();
+							break;
+						case TURN_RIGHT:
+							player.turnRight();
+							break;
+						default:
+							break;
+						}
+					}
+					sequenceNumber.incrementAndGet();
 				}
 			}
 		}
 		
-		
+		System.exit(0);
+
+
 	}
 
 

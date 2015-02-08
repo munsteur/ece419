@@ -35,11 +35,12 @@ public class MazewarServerEventBroadcastThread extends Thread {
 //		}
 //		catch (InterruptedException e) {}
 		
-		while (!mazewarServer.isShutDown()) {
+		boolean quitReceived = false;
+		
+		while (!quitReceived) {
 			MazewarPacket packet = null;
-			int sequenceNumber = mazewarServer.sequenceNumber.incrementAndGet();
 			
-			if (sequenceNumber == 1) { // first packet
+			if (mazewarServer.sequenceNumber.get() == 0) { // GAME_START packet
 				String msg = "";
 				msg += mazewarServer.activePlayers.size();
 				for (int i = 0; i < mazewarServer.numPlayers; i++) {
@@ -49,26 +50,43 @@ public class MazewarServerEventBroadcastThread extends Thread {
 				packet = new MazewarPacket(
 					MazewarPacketType.GAME_START, 
 					-1, 
-					sequenceNumber, 
+					mazewarServer.sequenceNumber.get(), 
 					msg);
+				mazewarServer.sequenceNumber.incrementAndGet();
+				
+				for (int i = 0; i < mazewarServer.numPlayers; i++) {
+					if (mazewarServer.activePlayers.contains(i)) {
+						try {
+							packet.playerID = i;
+							toClient[i].writeObject(packet);
+						}
+						catch (IOException e) {
+							System.err.println("ERROR: Could not send GAME_START packet to player " + i);
+						}
+					}
+				}
 			}
 			else {
 				try {
 					packet = mazewarServer.packetQueue.take();
 				} 
 				catch (InterruptedException e) {}
-			}
-			for (int i = 0; i < mazewarServer.numPlayers; i++) {
-				if (mazewarServer.activePlayers.contains(i)) {
-					try {
-						packet.playerID = i;
-						toClient[i].writeObject(packet);
-					}
-					catch (IOException e) {
-						System.err.println("ERROR: Could not broadcast to player " + i);
+				
+				for (int i = 0; i < mazewarServer.numPlayers; i++) {
+					if (mazewarServer.activePlayers.contains(i)) {
+						try {
+							toClient[i].writeObject(packet);
+						}
+						catch (IOException e) {
+							System.err.println("ERROR: Could not broadcast to player " + i);
+						}
 					}
 				}
+				
+				if (packet.packetType == MazewarPacketType.QUIT)
+					quitReceived = true;
 			}
+			
 			
 		}
 
@@ -76,8 +94,10 @@ public class MazewarServerEventBroadcastThread extends Thread {
 		for (int i = 0; i < mazewarServer.numPlayers; i++) {
 			try {
 				//if (mazewarServer.activePlayers.contains(i)) {
-				toClient[i].close();
-				sockets[i].close();
+				if (toClient[i] != null)
+					toClient[i].close();
+				if (sockets[i] != null)
+					sockets[i].close();
 				//}
 			}
 			catch (IOException e) {

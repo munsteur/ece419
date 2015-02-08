@@ -15,7 +15,7 @@ public class MazewarServerMissileTickerThread extends Thread {
 				mazewarServer.packetQueue.add(new MazewarPacket(
 								MazewarPacketType.MISSLE_TICK, 
 								-1, 
-								mazewarServer.sequenceNumber.incrementAndGet(),
+								mazewarServer.sequenceNumber.getAndIncrement(),
 								null));
 			} catch (InterruptedException e) {
 				

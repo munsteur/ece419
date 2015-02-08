@@ -29,10 +29,14 @@ public class Direction {
         
         /* Internals ******************************************************/
         
+
+    	private static final int seed = 42;
+	
         /**
          * Create a random number generator to produce random directions.
          */
-        private static Random randomGen = new Random();
+        private static Random randomGen = new Random(seed);
+        
         
         /** 
          * Internal representation of directions

@@ -29,7 +29,7 @@ public class MazewarServerEventListenerThread extends Thread {
 			try {
 				MazewarPacket packetFromClient = (MazewarPacket) fromClient.readObject();
 				packetFromClient.playerID = playerID;
-				packetFromClient.sequenceNumber = mazewarServer.sequenceNumber.incrementAndGet();
+				packetFromClient.sequenceNumber = mazewarServer.sequenceNumber.getAndIncrement();
 				mazewarServer.packetQueue.add(packetFromClient);
 				System.out.println("Received " + packetFromClient.packetType + " packet from player " + playerID);
 			}

@@ -27,7 +27,7 @@ public class MazewarClientEventListenerThread extends Thread {
 			try {
 				MazewarPacket packetFromServer = (MazewarPacket) fromServer.readObject();
 				mazewarClient.listenerQueue.add(packetFromServer);
-				//System.out.println("Received " + packetFromServer.packetType + " packet from server");
+				System.out.println("Received player " + packetFromServer.playerID + " " + packetFromServer.packetType + " event from server");
 			}
 			catch (IOException e) {
 				System.err.println("ERROR: Could not read packets from server");
