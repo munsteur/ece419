@@ -20,6 +20,6 @@ public class MazewarPacket implements Serializable, Comparable<MazewarPacket> {
 
 	@Override
 	public int compareTo(MazewarPacket o) {
-		return Integer.compare(this.sequenceNumber, o.sequenceNumber);
+		return Integer.valueOf(this.sequenceNumber).compareTo(Integer.valueOf(o.sequenceNumber));
 	}
 }

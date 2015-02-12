@@ -1,8 +1,6 @@
 import java.net.*;
 import java.io.*;
 
-import com.sun.corba.se.impl.naming.pcosnaming.NameServer;
-
 public class MazewarServerEventBroadcastThread extends Thread {
 	private Socket[] sockets;
 	private MazewarServer mazewarServer;

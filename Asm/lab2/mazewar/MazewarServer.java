@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.sun.jmx.snmp.tasks.ThreadService;
-
 public class MazewarServer {
 
 	private static final int PACKET_QUEUE_SIZE = 1000;

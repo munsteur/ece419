@@ -29,8 +29,6 @@ import java.awt.GridBagConstraints;
 
 import javax.swing.BorderFactory;
 
-import com.sun.org.apache.bcel.internal.generic.I2F;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.PriorityBlockingQueue;
