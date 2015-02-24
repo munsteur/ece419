@@ -1,0 +1,11 @@
+Students:
+Ling Zhong
+Yi Ping Sun
+
+
+Running the game:
+Server
+	java MazewarServer {port}
+Client
+	java MazewarClient {server address} {server port}
+
