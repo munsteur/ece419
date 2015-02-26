@@ -42,7 +42,7 @@ import java.util.HashMap;
  * @version $Id: MazeImpl.java 371 2004-02-10 21:55:32Z geoffw $
  */
 
-public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
+public class MazeImpl extends Maze implements Serializable, ClientListener {
 
         /**
          * Create a {@link Maze}.
@@ -68,15 +68,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         mazeVector.insertElementAt(colVector, i);
                 }
 
-                thread = new Thread(this);
-
                 // Initialized the random number generator
                 randomGen = new Random(seed);
                 
                 // Build the maze starting at the corner
                 buildMaze(new Point(0,0));
-
-                thread.start();
         }
        
         /** 
@@ -330,7 +326,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         /**
          * Control loop for {@link Projectile}s.
          */
-        public void run() {
+        public void missileTick() {
                 Collection deadPrj = new HashSet();
                 //while(true) {
                         if(!projectileMap.isEmpty()) {
@@ -339,7 +335,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         while(it.hasNext()) {   
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
-                                                deadPrj.addAll(moveProjectile((Projectile)o));
+                                                // if this projectile hasn't already been destroyed by another
+                                                if (!deadPrj.contains((Projectile)o))
+                                                    deadPrj.addAll(moveProjectile((Projectile)o));
                                         }               
                                         it = deadPrj.iterator();
                                         while(it.hasNext()) {
@@ -375,7 +373,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 /* Check for a wall */
                 if(cell.isWall(d)) {
                         // If there is a wall, the projectile goes away.
-                        cell.setContents(null);
+                        cell.setContents(null);                   
                         deadPrj.add(prj);
                         update();
                         return deadPrj;
@@ -585,7 +583,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         /**
          * The thread used to manage {@link Projectile}s.
          */
-        private final Thread thread;
+        //private final Thread thread;
         
         /**
          * Generate a notification to listeners that a

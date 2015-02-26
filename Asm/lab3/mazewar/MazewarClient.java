@@ -319,7 +319,7 @@ public class MazewarClient extends JFrame {
 				if (packet.sequenceNumber == sequenceNumber.get()) {
 					listenerQueue.poll();
 					if (packet.packetType == MazewarPacketType.MISSLE_TICK)
-						new Thread(maze).start();
+						maze.missileTick();
 					else if (packet.packetType == MazewarPacketType.QUIT)
 						shutDown();
 					else {
