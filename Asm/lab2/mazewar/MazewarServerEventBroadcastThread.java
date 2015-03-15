@@ -6,7 +6,7 @@ public class MazewarServerEventBroadcastThread extends Thread {
 	private MazewarServer mazewarServer;
 
 	public MazewarServerEventBroadcastThread(MazewarServer mazewarServer) {
-		super("EchoServerHandlerThread");
+		super("MazewarServerEventBroadcastThread");
 		this.mazewarServer = mazewarServer;
 		this.sockets = mazewarServer.clientSockets;
 		System.out.println("Created MazewarServerEventBroadcastThread");
