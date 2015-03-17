@@ -7,10 +7,11 @@ public class MazewarNamingServiceControlThread extends Thread {
 	public MazewarNamingServiceControlThread(MazewarNamingService namingService) {
 		super("MazewarNamingServiceControlThread");
 		this.namingService = namingService;
-		System.out.println("Starting MazewarNamingServiceControlThread");
 	}
 	
 	public void run() {
+		System.out.println("Started MazewarNamingServiceControlThread");
+		
 		Scanner sc = new Scanner(System.in);
 		String input = "";
 		while (!input.equalsIgnoreCase("q"))

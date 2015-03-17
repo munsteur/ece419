@@ -191,15 +191,26 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
         
         public synchronized void addClient(Client client) {
                 assert(client != null);
-                // Pick a random starting point, and check to see if it is already occupied
-                Point point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                CellImpl cell = getCellImpl(point);
-                // Repeat until we find an empty cell
-                while(cell.getContents() != null) {
-                        point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                        cell = getCellImpl(point);
-                } 
-                addClient(client, point);
+                
+                if (client instanceof LocalClient) {
+	                // Pick a random starting point, and check to see if it is already occupied
+	                Point point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	                CellImpl cell = getCellImpl(point);
+	                // Repeat until we find an empty cell
+	                while(cell.getContents() != null) {
+	                        point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	                        cell = getCellImpl(point);
+	                } 
+	                addClient(client, point);
+                }
+                else {
+                	addClient(client, ((RemoteClient)client).initialPosition);
+                }
+                
+                rotateClientLeft(client);
+                rotateClientLeft(client);
+                rotateClientLeft(client);
+                rotateClientLeft(client);
         }
         
         public synchronized Point getClientPoint(Client client) {
@@ -423,15 +434,25 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 assert(checkBounds(point));
                 CellImpl cell = getCellImpl(point);
                 Direction d = Direction.random();
-                while(cell.isWall(d)) {
-                  d = Direction.random();
+                if (client instanceof LocalClient) {
+	                while(cell.isWall(d)) {
+	                  d = Direction.random();
+	                }
+                }
+                else {
+                	d = ((RemoteClient)client).initialPosition.getDirection();
                 }
                 cell.setContents(client);
                 clientMap.put(client, new DirectedPoint(point, d));
+                System.out.println("Player " + client.getName() + " facing " + d.toString());
                 client.registerMaze(this);
                 client.addClientListener(this);
                 update();
                 notifyClientAdd(client);
+        }
+        
+        public DirectedPoint getClientDirectedPoint(Client client) {
+        	return (DirectedPoint)clientMap.get(client);
         }
         
         /**
@@ -599,6 +620,18 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                         MazeListener ml = (MazeListener)o;
                         ml.clientAdded(c);
                 } 
+        }
+        
+        public int getClientScore(Client client) {
+        	assert(client != null);
+            Iterator i = listenerSet.iterator();
+            while (i.hasNext()) {
+                    Object o = i.next();
+                    if (o instanceof ScoreTableModel) {
+                    	return ((ScoreTableModel)o).clientGetScore(client);
+                    }
+            } 
+            return 0;
         }
         
         /**
@@ -860,4 +893,6 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 assert(o2 instanceof CellImpl);
                 return (CellImpl)o2;
         }
+
+		
 }

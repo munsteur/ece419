@@ -8,5 +8,6 @@ public enum MazewarGamePacketType {
 	TURN_LEFT,
 	TURN_RIGHT,
 	FIRE,
-	MISSLE_TICK;
+	MISSLE_TICK,
+	ACK;
 }

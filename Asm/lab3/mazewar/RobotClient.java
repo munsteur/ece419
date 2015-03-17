@@ -51,8 +51,8 @@ public class RobotClient extends LocalClient implements Runnable {
          * Create a computer controlled {@link LocalClient}.
          * @param name The name of this {@link RobotClient}.
          */
-        public RobotClient(String name) {
-                super(name);
+        public RobotClient(String name, MazewarClient mazewarClient) {
+                super(name, mazewarClient);
                 assert(name != null);
                 // Create our thread
                 thread = new Thread(this);

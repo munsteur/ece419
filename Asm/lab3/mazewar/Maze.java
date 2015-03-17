@@ -103,6 +103,8 @@ public abstract class Maze {
      */
     public abstract Iterator getClients();
     
+    public abstract int getClientScore(Client client);
+    
     /* Maze Listeners ******************************************************/
 
     /** 

@@ -38,10 +38,6 @@ public abstract class LocalClient extends Client {
          * Create a {@link Client} local to this machine.
          * @param name The name of this {@link Client}.
          */
-        public LocalClient(String name) {
-                super(name);
-                assert(name != null);
-        }
         
         public LocalClient(String name, MazewarClient mazewarClient) {
         	super(name);
@@ -54,27 +50,37 @@ public abstract class LocalClient extends Client {
          * @return 
          */
         public void reportForward() {
-        	MazewarPacket packet = new MazewarPacket(MazewarPacketType.GO_FORWARD, -1, -1, "");
-        	mazewarClient.senderQueue.add(packet);
+        	if (!mazewarClient.isPaused) {
+	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.GO_FORWARD, -1, null);
+	        	mazewarClient.broadcastPacket(packet);
+        	}
         }
         
         public void reportBackup() {
-        	MazewarPacket packet = new MazewarPacket(MazewarPacketType.GO_BACKWARD, -1, -1, "");
-        	mazewarClient.senderQueue.add(packet);
+        	if (!mazewarClient.isPaused) {
+	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.GO_BACKWARD, -1, null);
+	        	mazewarClient.broadcastPacket(packet);
+        	}
         }
         
         public void reportTurnLeft() {
-        	MazewarPacket packet = new MazewarPacket(MazewarPacketType.TURN_LEFT, -1, -1, "");
-        	mazewarClient.senderQueue.add(packet);
+        	if (!mazewarClient.isPaused) {
+	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.TURN_LEFT, -1, null);
+	        	mazewarClient.broadcastPacket(packet);
+        	}
         }
         
         public void reportTurnRight() {
-        	MazewarPacket packet = new MazewarPacket(MazewarPacketType.TURN_RIGHT, -1, -1, "");
-        	mazewarClient.senderQueue.add(packet);
+        	if (!mazewarClient.isPaused) {
+	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.TURN_RIGHT, -1, null);
+	        	mazewarClient.broadcastPacket(packet);
+        	}
         }
         
         public void reportFire() {
-        	MazewarPacket packet = new MazewarPacket(MazewarPacketType.FIRE, -1, -1, "");
-        	mazewarClient.senderQueue.add(packet);
+        	if (!mazewarClient.isPaused) {
+	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.FIRE, -1, null);
+	        	mazewarClient.broadcastPacket(packet);
+        	}
         }
 }

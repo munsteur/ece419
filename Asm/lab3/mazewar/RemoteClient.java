@@ -29,9 +29,15 @@ public class RemoteClient extends Client {
          * Create a remotely controlled {@link Client}.
          * @param name Name of this {@link RemoteClient}.
          */
-        public RemoteClient(String name) {
-                super(name);
-        }
+	
+	public int initialScore;
+	public DirectedPoint initialPosition;
+	
+		public RemoteClient(String name, int initialScore, DirectedPoint initialPosition) {
+	    	super(name);
+	    	this.initialScore = initialScore;
+	    	this.initialPosition = initialPosition;
+	    }
 
         /**
          * May want to fill in code here.

@@ -188,10 +188,19 @@ public class ScoreTableModel implements TableModel, MazeListener {
         public void mazeUpdate() {
 
         }
+        
+        public int clientGetScore(Client client) {
+        	assert(client != null);
+            Object o = clientMap.get(client);
+            assert(o instanceof ScoreWrapper);
+            return ((ScoreWrapper)o).getScore();
+        } 
 
         public void clientAdded(Client client) {
                 assert(client != null);
-                ScoreWrapper s = new ScoreWrapper(client);  
+                ScoreWrapper s = new ScoreWrapper(client);
+                if (client instanceof RemoteClient)
+                	s.adjustScore(((RemoteClient)client).initialScore);
                 scoreSet.add(s);
                 clientMap.put(client, s);
                 notifyListeners();

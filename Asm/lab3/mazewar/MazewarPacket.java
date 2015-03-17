@@ -1,6 +1,6 @@
 import java.io.Serializable;
 
 public abstract class MazewarPacket implements Serializable {
-	public String msg;
+	public Object extraInfo;
 	public int playerID;
 }

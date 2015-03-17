@@ -1,6 +1,6 @@
 
 // packets exchanged between clients and naming service
-public enum MazewarAdminPacketType {
+public enum MazewarInfoPacketType {
 	JOIN_REQUEST,
 	REMOVE_REQUEST
 }

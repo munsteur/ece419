@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MazewarNamingService {
 	
-	// <id, ip address>	
-	public ConcurrentHashMap<String, Integer> playersLookup;
+	// <id, player>	
+	public ConcurrentHashMap<Integer, Player> playersLookup;
 	// id's available to be assigned
 	public ConcurrentLinkedQueue<Integer> availableIDs;
 	
@@ -20,7 +20,7 @@ public class MazewarNamingService {
 	private ServerSocket serverSocket;
 	
 	public MazewarNamingService(int port, int maxPlayers) {
-		playersLookup = new ConcurrentHashMap<String, Integer>();
+		playersLookup = new ConcurrentHashMap<Integer, Player>();
 		availableIDs = new ConcurrentLinkedQueue<>();
 		for (int i = 0; i < maxPlayers; i++)
 			availableIDs.add(i);
@@ -30,7 +30,7 @@ public class MazewarNamingService {
 		serverSocket = null;
 		try {
 			serverSocket = new ServerSocket(port);
-			System.out.println("Starting naming service");
+			System.out.println("Started naming service");
 		} 
 		catch (IOException e) {
 			System.err.println("ERROR: Could not open server socket on port " + port);
@@ -60,7 +60,7 @@ public class MazewarNamingService {
 		isShutDown.set(true);
 		try {
 			serverSocket.close();
-			System.out.println("Shutting down naming service");
+			System.out.println("Shut down naming service");
 		} catch (IOException e) {
 			System.err.println("ERROR: Could not close server socket");
 		}

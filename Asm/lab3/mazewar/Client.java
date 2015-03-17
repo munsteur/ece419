@@ -76,6 +76,11 @@ public abstract class Client {
                 assert(maze != null);
                 return maze.getClientOrientation(this);
         }
+        
+        public int getScore() {
+        	assert(maze != null);
+            return maze.getClientScore(this);
+        }
        
         /**
          * Add an object to be notified when this {@link Client} performs an 
