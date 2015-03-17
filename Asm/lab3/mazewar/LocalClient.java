@@ -32,7 +32,7 @@ USA.
 
 public abstract class LocalClient extends Client {
 	
-		private MazewarClient mazewarClient;
+		protected MazewarClient mazewarClient;
 
         /** 
          * Create a {@link Client} local to this machine.

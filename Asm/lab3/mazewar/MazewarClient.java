@@ -139,10 +139,25 @@ public class MazewarClient extends JFrame {
 	 * Method for performing cleanup before exiting the game.
 	 */
 	public void shutDown() {
+		// send remove request to naming service
+		MazewarInfoPacket removeRequest = new MazewarInfoPacket(
+				MazewarInfoPacketType.REMOVE_REQUEST, 
+				playerID, true, "");
+		infoSenderQueue.add(removeRequest);
+		new MazewarClientInfoHandlerThread(this).start();
+
+		// send broadcast shutdown
+		MazewarGamePacket leavePacket = buildPacket(MazewarGamePacketType.LEAVE, -1.0, null);
+		broadcastPacket(leavePacket);
+		// clean up resources
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {}
 		isShutDown = true;
 	}
 
 	public boolean isShutDown() {
+		
 		return isShutDown;
 	}
 
@@ -314,13 +329,11 @@ public class MazewarClient extends JFrame {
 			(new MazewarClientMissileTickerThread(this)).start();
 		}
 		
-
-
-
-
-
-
-
+		
+		
+		
+		
+		
 		
 
 		for (int id : players.keySet()) {
@@ -415,6 +428,11 @@ public class MazewarClient extends JFrame {
 						addRemoteClient(id, (String[])packet.extraInfo);
 						isPaused = false;
 						break;
+					case LEAVE:
+						maze.removeClient(clients.get(id));
+						playerShutdown.put(id, true);
+						players.remove(id);
+						break;
 					case FIRE:
 						clients.get(id).fire();
 						break;
@@ -437,9 +455,6 @@ public class MazewarClient extends JFrame {
 						break;
 
 					}
-					
-					
-					
 				}
 			}
 		}
@@ -482,6 +497,7 @@ public class MazewarClient extends JFrame {
 			}
 		}
 		 */
+
 		System.exit(0);
 
 

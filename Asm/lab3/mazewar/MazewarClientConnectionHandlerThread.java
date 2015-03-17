@@ -23,7 +23,7 @@ public class MazewarClientConnectionHandlerThread extends Thread {
 			System.exit(-1);
 		}
 		
-		while (!mazewarClient.playerShutdown.containsKey(mazewarClient.playerID)) {
+		while (!mazewarClient.isShutDown()) {
 			try {
 				Socket socket = serverSocket.accept();
 				(new MazewarClientGameListenerThread(mazewarClient, -1, socket)).start();

@@ -25,13 +25,16 @@ public class MazewarClientGameSenderThread extends Thread {
 			System.err.println("ERROR: Could not connect to player " + playerID);
 		}
 
-		while (!mazewarClient.playerShutdown.containsKey(playerID)) {
+		while (!mazewarClient.playerShutdown.containsKey(playerID) && !mazewarClient.isShutDown()) {
 			if (!mazewarClient.gameSenderQueues.get(playerID).isEmpty()) {
 				try {
 					oos.writeObject(mazewarClient.gameSenderQueues.get(playerID).poll());
 				}
 				catch (IOException e) {
 					System.err.println("ERROR: Could not send packets to player " + playerID);
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e1) {}
 				}
 			}
 		}
