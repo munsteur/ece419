@@ -35,7 +35,7 @@ public class MazewarClientGameListenerThread extends Thread {
 			catch (IOException | ClassNotFoundException e) {
 				System.err.println("ERROR: Could not read packets from player " + playerID);
 				try {
-					Thread.sleep(200);
+					Thread.sleep(50);
 				} catch (InterruptedException e1) {}
 			}
 			
@@ -50,7 +50,7 @@ public class MazewarClientGameListenerThread extends Thread {
 					// increment lamport
 					mazewarClient.lamport.set(Math.max(mazewarClient.lamport.incrementAndGet(), packet.lamport+1));
 	
-					System.out.println("Received player " + packet.playerID + " " + packet.packetType + " event");
+					System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " ACK event for " + msgLamport);
 				}
 				else {
 					if (packet.packetType == MazewarGamePacketType.JOIN) { // TODO: do for remove
@@ -58,11 +58,14 @@ public class MazewarClientGameListenerThread extends Thread {
 						// TODO: stop keyboard input
 						mazewarClient.isPaused = true;
 						
-						try {
-							Thread.sleep(500);
-						} catch (InterruptedException e) {}
+						while (!mazewarClient.gameListenerQueue.isEmpty()) {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {}
+						}
 						
 						playerID = packet.playerID;
+						mazewarClient.players.put(playerID, new Player("", -1, playerID, ""));
 						mazewarClient.playerShutdown.remove(packet.playerID);
 						mazewarClient.gameSenderQueues.put(playerID, new PriorityBlockingQueue<MazewarGamePacket>());
 						(new MazewarClientGameSenderThread(mazewarClient, playerID, socket)).start();
@@ -80,7 +83,7 @@ public class MazewarClientGameListenerThread extends Thread {
 					}
 					mazewarClient.acks.get(msgLamport).put(playerID, packet);
 	
-					// increment lamport
+					/*// increment lamport
 					mazewarClient.lamport.set(Math.max(mazewarClient.lamport.incrementAndGet(), packet.lamport+1));
 	
 					// send ACK to all other clients
@@ -99,12 +102,12 @@ public class MazewarClientGameListenerThread extends Thread {
 						else {
 							queue.add(mazewarClient.buildPacket(MazewarGamePacketType.ACK, msgLamport, null));
 						}
-					}
+					}*/
 	
 					mazewarClient.gameListenerQueue.add(packet);
 					
 	
-					System.out.println("Received player " + packet.playerID + " " + packet.packetType + " event");
+					System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " " + packet.packetType + " event");
 	
 				}
 			}

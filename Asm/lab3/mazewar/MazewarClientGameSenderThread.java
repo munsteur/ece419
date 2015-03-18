@@ -4,12 +4,12 @@ import java.io.*;
 public class MazewarClientGameSenderThread extends Thread {
 	private Socket socket = null;
 	private MazewarClient mazewarClient;
-	private int playerID;
+	private int dstPlayerID;
 
-	public MazewarClientGameSenderThread(MazewarClient mazewarClient, int playerID, Socket socket) {
+	public MazewarClientGameSenderThread(MazewarClient mazewarClient, int dstPlayerID, Socket socket) {
 		super("MazewarClientGameSenderThread");
 		this.mazewarClient = mazewarClient;
-		this.playerID = playerID;
+		this.dstPlayerID = dstPlayerID;
 		this.socket = socket;
 		
 	}
@@ -22,18 +22,20 @@ public class MazewarClientGameSenderThread extends Thread {
 			oos = new ObjectOutputStream(socket.getOutputStream());
 		} 
 		catch (IOException e) {
-			System.err.println("ERROR: Could not connect to player " + playerID);
+			System.err.println("ERROR: Could not connect to player " + dstPlayerID);
 		}
 
-		while (!mazewarClient.playerShutdown.containsKey(playerID) && !mazewarClient.isShutDown()) {
-			if (!mazewarClient.gameSenderQueues.get(playerID).isEmpty()) {
+		while (!mazewarClient.playerShutdown.containsKey(dstPlayerID) && !mazewarClient.isShutDown()) {
+			if (!mazewarClient.gameSenderQueues.get(dstPlayerID).isEmpty()) {
 				try {
-					oos.writeObject(mazewarClient.gameSenderQueues.get(playerID).poll());
+					MazewarGamePacket packet = mazewarClient.gameSenderQueues.get(dstPlayerID).poll();
+					oos.writeObject(packet);
+					System.out.println(packet.extendLamport + ": Sent to player " + dstPlayerID + " " + packet.packetType + " event");
 				}
 				catch (IOException e) {
-					System.err.println("ERROR: Could not send packets to player " + playerID);
+					System.err.println("ERROR: Could not send packets to player " + dstPlayerID);
 					try {
-						Thread.sleep(200);
+						Thread.sleep(50);
 					} catch (InterruptedException e1) {}
 				}
 			}
@@ -45,7 +47,7 @@ public class MazewarClientGameSenderThread extends Thread {
 			socket.close();
 		}
 		catch (IOException e) {
-			System.err.println("ERROR: Could not close connection to player " + playerID);
+			System.err.println("ERROR: Could not close connection to player " + dstPlayerID);
 		}
 		
 		System.out.println("Exitted MazewarClientGameSenderThread");

@@ -53,7 +53,7 @@ public class MazewarClient extends JFrame {
 	public String namingServiceHost;
 	public int namingServicePort;
 
-	private static final int QUEUE_SIZE = 1000;
+	private static final int QUEUE_SIZE = 10000;
 	public PriorityBlockingQueue<MazewarGamePacket> gameListenerQueue;
 	public ConcurrentHashMap<Integer, PriorityBlockingQueue<MazewarGamePacket>> gameSenderQueues;
 	public ArrayBlockingQueue<MazewarInfoPacket> infoListenerQueue;
@@ -182,6 +182,7 @@ public class MazewarClient extends JFrame {
 		RemoteClient remoteClient = new RemoteClient(name, score, new DirectedPoint(new Point(x, y), new Direction(directionVal)));
 		clients.put(id, (Client) remoteClient);
 		maze.addClient(remoteClient);
+		
 		
 	}
 
@@ -326,7 +327,7 @@ public class MazewarClient extends JFrame {
 
 		if (players.size() == 1) {
 			isTicker = true;
-			(new MazewarClientMissileTickerThread(this)).start();
+			//(new MazewarClientMissileTickerThread(this)).start();
 		}
 		
 		
@@ -423,6 +424,7 @@ public class MazewarClient extends JFrame {
 						(acks.containsKey(packet.extendLamport) && acks.get(packet.extendLamport).size() >= players.size()-1) ) {
 					acks.remove(gameListenerQueue.poll().extendLamport);
 					int id = packet.playerID;
+					double msgLamport = packet.extendLamport;
 					switch (packet.packetType) {
 					case JOIN:
 						addRemoteClient(id, (String[])packet.extraInfo);
@@ -455,48 +457,34 @@ public class MazewarClient extends JFrame {
 						break;
 
 					}
-				}
-			}
-		}
-
-
-		/*
-		while (!isShutDown) {
-			if (!listenerQueue.isEmpty()) {
-				MazewarPacket packet = listenerQueue.peek();
-				if (packet.sequenceNumber == sequenceNumber.get()) {
-					listenerQueue.poll();
-					if (packet.packetType == MazewarPacketType.MISSLE_TICK)
-						maze.missileTick();
-					else if (packet.packetType == MazewarPacketType.QUIT)
-						shutDown();
-					else {
-						Client player = clients[packet.playerID];
-						switch (packet.packetType) {
-						case FIRE:
-							player.fire();
-							break;
-						case GO_BACKWARD:
-							player.backup();
-							break;
-						case GO_FORWARD:
-							player.forward();
-							break;
-						case TURN_LEFT:
-							player.turnLeft();
-							break;
-						case TURN_RIGHT:
-							player.turnRight();
-							break;
-						default:
-							break;
+					
+					System.out.println("Finished processing player " + id + " " + packet.packetType + " event " + " " + msgLamport);
+					
+					
+					
+					// increment lamport
+					lamport.set(Math.max(lamport.incrementAndGet(), packet.lamport+1));
+	
+					// send ACK to all other clients
+					for (PriorityBlockingQueue<MazewarGamePacket> queue : gameSenderQueues.values()) {
+						if (packet.packetType == MazewarGamePacketType.JOIN) {
+							queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, 
+									new String[] {
+										""+guiClient.getScore(),
+										""+guiClient.getPoint().getX(),
+										""+guiClient.getPoint().getY(),
+										""+guiClient.getOrientation().toVal(),
+										guiClient.getName()
+									}
+							));
+						}
+						else {
+							queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, null));
 						}
 					}
-					sequenceNumber.incrementAndGet();
 				}
 			}
 		}
-		 */
 
 		System.exit(0);
 
