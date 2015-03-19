@@ -444,7 +444,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 }
                 cell.setContents(client);
                 clientMap.put(client, new DirectedPoint(point, d));
-                System.out.println("Player " + client.getName() + " facing " + d.toString());
+//                System.out.println("Player " + client.getName() + " facing " + d.toString());
                 client.registerMaze(this);
                 client.addClientListener(this);
                 update();

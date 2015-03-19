@@ -28,6 +28,8 @@ import java.awt.event.KeyEvent;
  */
 
 public class GUIClient extends LocalClient implements KeyListener {
+	
+	private long lastPressProcessed = 0;
 
 	/**
 	 * Create a GUI controlled {@link LocalClient}.  
@@ -42,24 +44,31 @@ public class GUIClient extends LocalClient implements KeyListener {
 	 * @param e The {@link KeyEvent} that occurred.
 	 */
 	public void keyPressed(KeyEvent e) {
-		// If the user pressed Q, invoke the cleanup code and quit. 
-		if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-			mazewarClient.shutDown();
-		// Up-arrow moves forward.
-		} else if(e.getKeyCode() == KeyEvent.VK_UP) {
-			reportForward();
-		// Down-arrow moves backward.
-		} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-			reportBackup();
-		// Left-arrow turns left.
-		} else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-			reportTurnLeft();
-		// Right-arrow turns right.
-		} else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-			reportTurnRight();
-		// Spacebar fires.
-		} else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
-			reportFire();
+		
+		if(System.currentTimeMillis() - lastPressProcessed > 50) {
+            //Do your work here...
+            lastPressProcessed = System.currentTimeMillis();
+        
+		
+			// If the user pressed Q, invoke the cleanup code and quit. 
+			if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
+				mazewarClient.shutDown();
+			// Up-arrow moves forward.
+			} else if(e.getKeyCode() == KeyEvent.VK_UP) {
+				reportForward();
+			// Down-arrow moves backward.
+			} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+				reportBackup();
+			// Left-arrow turns left.
+			} else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+				reportTurnLeft();
+			// Right-arrow turns right.
+			} else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+				reportTurnRight();
+			// Spacebar fires.
+			} else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+				reportFire();
+			}
 		}
 	}
 

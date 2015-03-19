@@ -15,6 +15,7 @@ public class MazewarClientGameSenderThread extends Thread {
 	}
 
 	public void run() {
+		
 		System.out.println("Started MazewarClientGameSenderThread");
 
 		ObjectOutputStream oos = null;
@@ -25,12 +26,21 @@ public class MazewarClientGameSenderThread extends Thread {
 			System.err.println("ERROR: Could not connect to player " + dstPlayerID);
 		}
 
-		while (!mazewarClient.playerShutdown.containsKey(dstPlayerID) && !mazewarClient.isShutDown()) {
+		while (!mazewarClient.playerShutdown.containsKey(dstPlayerID) && !mazewarClient.isShutDown) {
+			
+			try {
+				Thread.sleep(10);
+			} 
+			catch (InterruptedException e) {}
+			
 			if (!mazewarClient.gameSenderQueues.get(dstPlayerID).isEmpty()) {
 				try {
 					MazewarGamePacket packet = mazewarClient.gameSenderQueues.get(dstPlayerID).poll();
 					oos.writeObject(packet);
-					System.out.println(packet.extendLamport + ": Sent to player " + dstPlayerID + " " + packet.packetType + " event");
+					if (packet.packetType == MazewarGamePacketType.ACK)
+						System.out.println("Sent to player " + dstPlayerID + " " + packet.packetType + " for " + packet.ackLamport);
+					else
+						System.out.println("Sent to player " + dstPlayerID + " " + packet.packetType + " event " + packet.extendLamport);
 				}
 				catch (IOException e) {
 					System.err.println("ERROR: Could not send packets to player " + dstPlayerID);

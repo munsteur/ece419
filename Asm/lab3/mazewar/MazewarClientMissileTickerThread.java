@@ -17,7 +17,7 @@ public class MazewarClientMissileTickerThread extends Thread {
 			} catch (InterruptedException e1) {} 
 			while (!mazewarClient.isPaused) {
 				try {
-					Thread.sleep(500); 
+					Thread.sleep(200); 
 					MazewarGamePacket tick = mazewarClient.buildPacket(MazewarGamePacketType.MISSLE_TICK, -1, null);
 					mazewarClient.broadcastPacket(tick);
 				} catch (InterruptedException e) {}
