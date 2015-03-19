@@ -13,7 +13,7 @@ public class MazewarClientMissileTickerThread extends Thread {
 
 		while (mazewarClient.isTicker) {
 			try { 
-				Thread.sleep(0); // prevent hogging of thread in simple loop
+				Thread.sleep(10); // prevent hogging of thread in simple loop
 			} catch (InterruptedException e1) {} 
 			while (!mazewarClient.isPaused) {
 				try {

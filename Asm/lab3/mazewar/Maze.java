@@ -104,6 +104,7 @@ public abstract class Maze {
     public abstract Iterator getClients();
     
     public abstract int getClientScore(Client client);
+    public abstract void syncRand(int seed);
     
     /* Maze Listeners ******************************************************/
 

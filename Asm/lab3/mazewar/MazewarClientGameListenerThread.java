@@ -18,6 +18,11 @@ public class MazewarClientGameListenerThread extends Thread {
 
 	public void run() {
 		System.out.println("Started MazewarClientGameListenerThread");
+		
+		try {
+			Thread.sleep(500);
+		} 
+		catch (InterruptedException e) {}
 
 		ObjectInputStream ois = null;
 		try {

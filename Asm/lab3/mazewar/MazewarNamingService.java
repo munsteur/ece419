@@ -5,6 +5,7 @@ import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 
@@ -13,19 +14,21 @@ public class MazewarNamingService {
 	// <id, player>	
 	public ConcurrentHashMap<Integer, Player> playersLookup;
 	// id's available to be assigned
-	public ConcurrentLinkedQueue<Integer> availableIDs;
+//	public ConcurrentLinkedQueue<Integer> availableIDs;
 	
 	public final int maxPlayers;
 	public AtomicBoolean isShutDown;
 	private ServerSocket serverSocket;
+	public AtomicInteger id;
 	
 	public MazewarNamingService(int port, int maxPlayers) {
 		playersLookup = new ConcurrentHashMap<Integer, Player>();
-		availableIDs = new ConcurrentLinkedQueue<>();
-		for (int i = 0; i < maxPlayers; i++)
-			availableIDs.add(i);
+//		availableIDs = new ConcurrentLinkedQueue<>();
+//		for (int i = 0; i < maxPlayers; i++)
+//			availableIDs.add(i);
 		this.maxPlayers = maxPlayers;
 		isShutDown = new AtomicBoolean(false);
+		id = new AtomicInteger(0);
 		
 		serverSocket = null;
 		try {

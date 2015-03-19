@@ -73,6 +73,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 
                 // Build the maze starting at the corner
                 buildMaze(new Point(0,0));
+                
+                randomGen = new Random();
+        }
+        
+        public void syncRand(int seed) {
+        	randomGen = new Random(seed);
         }
        
         /** 
@@ -470,6 +476,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 Point point = (Point)o;
                 CellImpl cell = getCellImpl(point);
                 cell.setContents(null);
+                System.out.println(Direction.random());
                 // Pick a random starting point, and check to see if it is already occupied
                 point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
                 cell = getCellImpl(point);
@@ -482,10 +489,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
                 while(cell.isWall(d)) {
                         d = Direction.random();
                 }
+                System.out.println(Direction.random());
                 cell.setContents(target);
                 clientMap.put(target, new DirectedPoint(point, d));
                 update();
                 notifyClientKilled(source, target);
+                
+
         }
         
         /**
@@ -560,7 +570,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener {
         /**
          * The random number generator used by the {@link Maze}.
          */
-        private final Random randomGen;
+        private Random randomGen;
 
         /**
          * The maximum X coordinate of the {@link Maze}.

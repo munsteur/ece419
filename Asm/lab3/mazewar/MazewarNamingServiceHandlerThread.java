@@ -4,6 +4,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.sun.xml.internal.bind.v2.model.core.ID;
+
 
 public class MazewarNamingServiceHandlerThread extends Thread {
 
@@ -37,7 +39,8 @@ public class MazewarNamingServiceHandlerThread extends Thread {
 			case JOIN_REQUEST:
 				txPacket = new MazewarInfoPacket(MazewarInfoPacketType.JOIN_REQUEST, -1, false, "");
 				if (namingService.playersLookup.size() < namingService.maxPlayers) {
-					int id = namingService.availableIDs.poll();
+//					int id = namingService.availableIDs.poll();
+					int id = namingService.id.getAndIncrement();
 					namingService.playersLookup.put(
 							id,
 							new Player(
@@ -62,7 +65,7 @@ public class MazewarNamingServiceHandlerThread extends Thread {
 				txPacket = new MazewarInfoPacket(MazewarInfoPacketType.REMOVE_REQUEST, -1, false, "");
 				if (namingService.playersLookup.size() > 0) {
 					if (namingService.playersLookup.containsKey(id)) {
-						namingService.availableIDs.add(id);
+//						namingService.availableIDs.add(id);
 						namingService.playersLookup.remove(id);
 						txPacket.playerID = id;
 						txPacket.ok = true;

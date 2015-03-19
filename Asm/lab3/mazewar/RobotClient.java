@@ -68,8 +68,14 @@ public class RobotClient extends LocalClient implements Runnable {
                 super.registerMaze(maze);
 
                 // Get the control thread going.
-                active = true;
-                thread.start();
+//                active = true;
+//                thread.start();
+        }
+        
+        public synchronized void activate() {
+        	// Get the control thread going.
+            active = true;
+            thread.start();
         }
         
         /** 
@@ -98,20 +104,20 @@ public class RobotClient extends LocalClient implements Runnable {
                 // Loop while we are active
                 while(active) {
                         // Try to move forward
-                        if(!forward()) {
+                	reportForward();
                                 // If we fail...
                                 if(randomGen.nextInt(3) == 1) {
                                         // turn left!
-                                        turnLeft();
+                                        reportTurnLeft();
                                 } else {
                                         // or perhaps turn right!
-                                        turnRight();
+                                        reportTurnRight();
                                 }
-                        }
+                        //}
 
                         // Shoot at things once and a while.
                         if(randomGen.nextInt(10) == 1) {
-                                fire();
+                                reportFire();
                         }
                         
                         // Sleep so the humans can possibly compete.

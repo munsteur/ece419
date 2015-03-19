@@ -30,7 +30,7 @@ public class Direction {
         /* Internals ******************************************************/
         
 
-    	private static final int seed = 42;
+    	private static int seed = 42;
 	
         /**
          * Create a random number generator to produce random directions.
@@ -57,6 +57,15 @@ public class Direction {
         public Direction(int direction) {
                 assert((direction >= 0) && (direction < 4));
                 this.direction = direction;
+        }
+        
+        public static void syncRand(int seed) {
+        	Direction.seed = seed;
+        	randomGen = new Random(seed);
+        }
+        
+        public static int getSeed() {
+        	return Direction.seed;
         }
         
         public int toVal() {
