@@ -21,6 +21,6 @@ public class MazewarGamePacket extends MazewarPacket implements Comparable<Mazew
 		if (cmp == 0)
 			return Integer.valueOf(this.playerID).compareTo(Integer.valueOf(o.playerID));
 		return cmp;*/
-		return Double.valueOf(extendLamport).compareTo(Double.valueOf(extendLamport));
+		return Double.valueOf(extendLamport).compareTo(Double.valueOf(o.extendLamport));
 	}
 }

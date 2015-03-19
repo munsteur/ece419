@@ -49,38 +49,38 @@ public abstract class LocalClient extends Client {
          * Fill in here??
          * @return 
          */
-        public void reportForward() {
+        public synchronized void reportForward() {
         	if (!mazewarClient.isPaused) {
 	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.GO_FORWARD, -1, null);
-	        	mazewarClient.broadcastPacket(packet);
+	        	mazewarClient.addToPQ(packet);
         	}
         }
         
-        public void reportBackup() {
+        public synchronized void reportBackup() {
         	if (!mazewarClient.isPaused) {
 	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.GO_BACKWARD, -1, null);
-	        	mazewarClient.broadcastPacket(packet);
+	        	mazewarClient.addToPQ(packet);
         	}
         }
         
-        public void reportTurnLeft() {
+        public synchronized void reportTurnLeft() {
         	if (!mazewarClient.isPaused) {
 	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.TURN_LEFT, -1, null);
-	        	mazewarClient.broadcastPacket(packet);
+	        	mazewarClient.addToPQ(packet);
         	}
         }
         
-        public void reportTurnRight() {
+        public synchronized void reportTurnRight() {
         	if (!mazewarClient.isPaused) {
 	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.TURN_RIGHT, -1, null);
-	        	mazewarClient.broadcastPacket(packet);
+	        	mazewarClient.addToPQ(packet);
         	}
         }
         
-        public void reportFire() {
+        public synchronized void reportFire() {
         	if (!mazewarClient.isPaused) {
 	        	MazewarGamePacket packet = mazewarClient.buildPacket(MazewarGamePacketType.FIRE, -1, null);
-	        	mazewarClient.broadcastPacket(packet);
+	        	mazewarClient.addToPQ(packet);
         	}
         }
 }

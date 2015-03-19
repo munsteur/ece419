@@ -29,86 +29,58 @@ public class MazewarClientGameListenerThread extends Thread {
 
 		while (!mazewarClient.playerShutdown.containsKey(playerID) && !mazewarClient.isShutDown()) {
 			MazewarGamePacket packet = null;
-			try {
-				packet = (MazewarGamePacket) ois.readObject();
-			}
-			catch (IOException | ClassNotFoundException e) {
-				System.err.println("ERROR: Could not read packets from player " + playerID);
+			synchronized( this ) {
 				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e1) {}
-			}
-			
-			if (packet != null) {
-				if (packet.packetType == MazewarGamePacketType.ACK) {
-					double msgLamport = (double)packet.ackLamport;
-					if (!mazewarClient.acks.containsKey(msgLamport)) {
-						mazewarClient.acks.put(msgLamport, new ConcurrentHashMap<Integer, MazewarGamePacket>());
-					}
-					mazewarClient.acks.get(msgLamport).put(playerID, packet);
-	
-					// increment lamport
-					mazewarClient.lamport.set(Math.max(mazewarClient.lamport.incrementAndGet(), packet.lamport+1));
-	
-					System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " ACK event for " + msgLamport);
+					packet = (MazewarGamePacket) ois.readObject();
 				}
-				else {
-					if (packet.packetType == MazewarGamePacketType.JOIN) { // TODO: do for remove
-						
-						// TODO: stop keyboard input
-						mazewarClient.isPaused = true;
-						
-						while (!mazewarClient.gameListenerQueue.isEmpty()) {
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException e) {}
-						}
-						
-						playerID = packet.playerID;
-						mazewarClient.players.put(playerID, new Player("", -1, playerID, ""));
-						mazewarClient.playerShutdown.remove(packet.playerID);
-						mazewarClient.gameSenderQueues.put(playerID, new PriorityBlockingQueue<MazewarGamePacket>());
-						(new MazewarClientGameSenderThread(mazewarClient, playerID, socket)).start();
-						
-						
-	
-						
+				catch (IOException | ClassNotFoundException e) {
+					System.err.println("ERROR: Could not read packets from player " + playerID);
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e1) {}
+				}
+				
+				if (packet != null) {
+					if (packet.packetType == MazewarGamePacketType.ACK) {
+						double msgLamport = (double)packet.ackLamport;
+						mazewarClient.acks.putIfAbsent(msgLamport, new ConcurrentHashMap<Integer, MazewarGamePacket>());
+						mazewarClient.acks.get(msgLamport).put(playerID, packet);
+		
+						// increment lamport
+						mazewarClient.lamport.set(Math.max(mazewarClient.lamport.incrementAndGet(), packet.lamport+1));
+		
+						System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " ACK event for " + msgLamport);
 					}
-					
-	
-					// implicit ack from msg sender
-					double msgLamport = packet.extendLamport;
-					if (!mazewarClient.acks.containsKey(packet.extendLamport)) {
-						mazewarClient.acks.put(msgLamport, new ConcurrentHashMap<Integer, MazewarGamePacket>());
+					else {
+						if (packet.packetType == MazewarGamePacketType.JOIN) { // TODO: do for remove
+							
+							// TODO: stop keyboard input
+							mazewarClient.isPaused = true;
+							
+							while (!mazewarClient.gameListenerQueue.isEmpty()) {
+								try {
+									Thread.sleep(100);
+								} catch (InterruptedException e) {}
+							}
+							
+							playerID = packet.playerID;
+							mazewarClient.players.put(playerID, new Player("", -1, playerID, ""));
+							mazewarClient.playerShutdown.remove(packet.playerID);
+							mazewarClient.gameSenderQueues.put(playerID, new PriorityBlockingQueue<MazewarGamePacket>());
+							(new MazewarClientGameSenderThread(mazewarClient, playerID, socket)).start();
+							
+							// implicit ack from msg sender for JOIN only
+							double msgLamport = packet.extendLamport;
+							mazewarClient.acks.putIfAbsent(msgLamport, new ConcurrentHashMap<Integer, MazewarGamePacket>());
+							mazewarClient.acks.get(msgLamport).put(playerID, packet);
+		
+						}
+						
+						mazewarClient.gameListenerQueue.add(packet);
+						
+						System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " " + packet.packetType + " event");
+		
 					}
-					mazewarClient.acks.get(msgLamport).put(playerID, packet);
-	
-					/*// increment lamport
-					mazewarClient.lamport.set(Math.max(mazewarClient.lamport.incrementAndGet(), packet.lamport+1));
-	
-					// send ACK to all other clients
-					for (PriorityBlockingQueue<MazewarGamePacket> queue : mazewarClient.gameSenderQueues.values()) {
-						if (packet.packetType == MazewarGamePacketType.JOIN) {
-							queue.add(mazewarClient.buildPacket(MazewarGamePacketType.ACK, msgLamport, 
-									new String[] {
-										""+mazewarClient.guiClient.getScore(),
-										""+mazewarClient.guiClient.getPoint().getX(),
-										""+mazewarClient.guiClient.getPoint().getY(),
-										""+mazewarClient.guiClient.getOrientation().toVal(),
-										mazewarClient.guiClient.getName()
-									}
-							));
-						}
-						else {
-							queue.add(mazewarClient.buildPacket(MazewarGamePacketType.ACK, msgLamport, null));
-						}
-					}*/
-	
-					mazewarClient.gameListenerQueue.add(packet);
-					
-	
-					System.out.println(packet.extendLamport + ": Received player " + packet.playerID + " " + packet.packetType + " event");
-	
 				}
 			}
 

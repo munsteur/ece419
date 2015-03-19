@@ -31,6 +31,7 @@ import javax.swing.BorderFactory;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -165,7 +166,11 @@ public class MazewarClient extends JFrame {
 		return new MazewarGamePacket(type, playerID, lamport.getAndIncrement(), ackLamport, extraInfo);
 	}
 	
-	public void broadcastPacket(MazewarGamePacket packet) {
+	public synchronized void addToPQ(MazewarGamePacket packet) {
+		gameListenerQueue.add(packet);
+	}
+	
+	public synchronized void broadcastPacket(MazewarGamePacket packet) {
 		gameListenerQueue.add(packet);
 		for (PriorityBlockingQueue<MazewarGamePacket> queue : gameSenderQueues.values()) {
 			queue.add(packet);
@@ -292,6 +297,8 @@ public class MazewarClient extends JFrame {
 					guiClient.getName()
 		});
 		broadcastPacket(joinPacket);
+		
+		
 
 		for (Player player : players.values()) {
 			if (playerID != player.id) {
@@ -327,7 +334,7 @@ public class MazewarClient extends JFrame {
 
 		if (players.size() == 1) {
 			isTicker = true;
-			//(new MazewarClientMissileTickerThread(this)).start();
+			(new MazewarClientMissileTickerThread(this)).start();
 		}
 		
 		
@@ -416,71 +423,87 @@ public class MazewarClient extends JFrame {
 		overheadPanel.repaint();
 		this.requestFocusInWindow();
 		
-		
+		MazewarGamePacket prevP = null;
+		HashSet<MazewarGamePacket> seen = new HashSet<MazewarGamePacket>();
 		while (!isShutDown) {
 			if (!gameListenerQueue.isEmpty()) {
-				MazewarGamePacket packet = gameListenerQueue.peek();
-				if ( players.size() == 1 ||
-						(acks.containsKey(packet.extendLamport) && acks.get(packet.extendLamport).size() >= players.size()-1) ) {
-					acks.remove(gameListenerQueue.poll().extendLamport);
-					int id = packet.playerID;
-					double msgLamport = packet.extendLamport;
-					switch (packet.packetType) {
-					case JOIN:
-						addRemoteClient(id, (String[])packet.extraInfo);
-						isPaused = false;
-						break;
-					case LEAVE:
-						maze.removeClient(clients.get(id));
-						playerShutdown.put(id, true);
-						players.remove(id);
-						break;
-					case FIRE:
-						clients.get(id).fire();
-						break;
-					case GO_BACKWARD:
-						clients.get(id).backup();
-						break;
-					case GO_FORWARD:
-						clients.get(id).forward();
-						break;
-					case TURN_LEFT:
-						clients.get(id).turnLeft();
-						break;
-					case TURN_RIGHT:
-						clients.get(id).turnRight();
-						break;
-					case MISSLE_TICK:
-						maze.missileTick();
-						break;
-					default:
-						break;
-
+				synchronized( this ) {
+					MazewarGamePacket packet = gameListenerQueue.peek();
+					if (packet != prevP) {
+						// send SELF EVENT to all once
+						if (!seen.contains(packet) && packet.playerID == this.playerID) {
+							for (PriorityBlockingQueue<MazewarGamePacket> queue : gameSenderQueues.values()) {
+								queue.add(packet);
+							}
+							seen.add(packet);
+						}
+						
+						// broadcast ACK to all players
+						double msgLamport = packet.extendLamport;
+						// increment lamport
+						lamport.set(Math.max(lamport.incrementAndGet(), packet.lamport+1));
+		
+						// send ACK to all other clients
+						for (PriorityBlockingQueue<MazewarGamePacket> queue : gameSenderQueues.values()) {
+							if (packet.packetType == MazewarGamePacketType.JOIN) {
+								queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, 
+										new String[] {
+											""+guiClient.getScore(),
+											""+guiClient.getPoint().getX(),
+											""+guiClient.getPoint().getY(),
+											""+guiClient.getOrientation().toVal(),
+											guiClient.getName()
+										}
+								));
+							}
+							else {
+								queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, null));
+							}
+						}
+						prevP = packet;
 					}
 					
-					System.out.println("Finished processing player " + id + " " + packet.packetType + " event " + " " + msgLamport);
-					
-					
-					
-					// increment lamport
-					lamport.set(Math.max(lamport.incrementAndGet(), packet.lamport+1));
+					if ( players.size() == 1 ||
+							(acks.containsKey(packet.extendLamport) && acks.get(packet.extendLamport).size() >= players.size()-1) ) {
+						//acks.remove(gameListenerQueue.poll().extendLamport);
+						gameListenerQueue.remove(packet);
+						
+						int id = packet.playerID;
+						double msgLamport = packet.extendLamport;
+						switch (packet.packetType) {
+						case JOIN:
+							addRemoteClient(id, (String[])packet.extraInfo);
+							isPaused = false;
+							break;
+						case LEAVE:
+							maze.removeClient(clients.get(id));
+							playerShutdown.put(id, true);
+							players.remove(id);
+							break;
+						case FIRE:
+							clients.get(id).fire();
+							break;
+						case GO_BACKWARD:
+							clients.get(id).backup();
+							break;
+						case GO_FORWARD:
+							clients.get(id).forward();
+							break;
+						case TURN_LEFT:
+							clients.get(id).turnLeft();
+							break;
+						case TURN_RIGHT:
+							clients.get(id).turnRight();
+							break;
+						case MISSLE_TICK:
+							maze.missileTick();
+							break;
+						default:
+							break;
 	
-					// send ACK to all other clients
-					for (PriorityBlockingQueue<MazewarGamePacket> queue : gameSenderQueues.values()) {
-						if (packet.packetType == MazewarGamePacketType.JOIN) {
-							queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, 
-									new String[] {
-										""+guiClient.getScore(),
-										""+guiClient.getPoint().getX(),
-										""+guiClient.getPoint().getY(),
-										""+guiClient.getOrientation().toVal(),
-										guiClient.getName()
-									}
-							));
 						}
-						else {
-							queue.add(buildPacket(MazewarGamePacketType.ACK, msgLamport, null));
-						}
+						
+						System.out.println("Finished processing player " + id + " " + packet.packetType + " event " + " " + msgLamport);
 					}
 				}
 			}

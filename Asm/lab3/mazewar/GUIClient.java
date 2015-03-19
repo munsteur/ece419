@@ -41,7 +41,7 @@ public class GUIClient extends LocalClient implements KeyListener {
 	 * Handle a key press.
 	 * @param e The {@link KeyEvent} that occurred.
 	 */
-	public void keyPressed(KeyEvent e) {
+	public synchronized void keyPressed(KeyEvent e) {
 		// If the user pressed Q, invoke the cleanup code and quit. 
 		if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
 			mazewarClient.shutDown();
